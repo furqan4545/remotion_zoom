@@ -1,46 +1,28 @@
-import './tailwind.css';
+import "./tailwind.css";
 import { Composition } from "remotion";
-import { HelloWorld, myCompSchema } from "./HelloWorld";
-import { Logo, myCompSchema2 } from "./HelloWorld/Logo";
+
+import { ZoomAndPanEffect } from "./components/ZoomAndPanEffect";
+import { cursorData } from "./components/CursorData";
 
 // Each <Composition> is an entry in the sidebar!
 
 export const RemotionRoot: React.FC = () => {
+  const durationInFrames = Math.ceil(
+    (cursorData.recording_info.duration / 1000) *
+      cursorData.recording_info.frame_rate,
+  );
+
   return (
     <>
-      <Composition
-        // You can take the "id" to render a video:
-        // npx remotion render src/index.ts <id> out/video.mp4
-        id="HelloWorld"
-        component={HelloWorld}
-        durationInFrames={150}
-        fps={30}
-        width={1920}
-        height={1080}
-        // You can override these props for each render:
-        // https://www.remotion.dev/docs/parametrized-rendering
-        schema={myCompSchema}
-        defaultProps={{
-          titleText: "Welcome to Remotion",
-          titleColor: "#000000",
-          logoColor1: "#91EAE4",
-          logoColor2: "#86A8E7",
-        }}
-      />
-
       {/* Mount any React component to make it show up in the sidebar and work on it individually! */}
       <Composition
-        id="OnlyLogo"
-        component={Logo}
-        durationInFrames={150}
-        fps={30}
-        width={1920}
-        height={1080}
-        schema={myCompSchema2}
-        defaultProps={{
-          logoColor1: "#91dAE2" as const,
-          logoColor2: "#86A8E7" as const,
-        }}
+        id="MyVideo"
+        component={ZoomAndPanEffect}
+        durationInFrames={durationInFrames}
+        // durationInFrames={28 * 30}
+        fps={cursorData.recording_info.frame_rate}
+        width={cursorData.recording_info.recorded_display_dimension.width}
+        height={cursorData.recording_info.recorded_display_dimension.height}
       />
     </>
   );
