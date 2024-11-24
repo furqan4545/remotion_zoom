@@ -1,7 +1,11 @@
 // src/VideoPlayer.tsx
 import React from "react";
-import { Video, staticFile } from "remotion";
+import { OffthreadVideo, staticFile, AbsoluteFill } from "remotion";
 
 export const VideoPlayer: React.FC = () => {
-  return <Video src={staticFile("assets/screen-1.webm")} />;
+  return (
+    <AbsoluteFill>
+      <OffthreadVideo src={staticFile("assets/screen-1.webm")} />
+    </AbsoluteFill>
+  );
 };
