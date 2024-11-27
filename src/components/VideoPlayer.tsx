@@ -5,7 +5,7 @@ import { OffthreadVideo, staticFile, AbsoluteFill } from "remotion";
 export const VideoPlayer: React.FC = () => {
   return (
     <AbsoluteFill>
-      <OffthreadVideo src={staticFile("assets/screen-1.webm")} />
+      <OffthreadVideo src={staticFile("assets/screen-2.webm")} />
     </AbsoluteFill>
   );
 };
