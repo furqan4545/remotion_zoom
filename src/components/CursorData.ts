@@ -36,6 +36,6 @@ export interface CursorData {
 }
 
 // Import the cursor data
-import cursorDataJson from "/public/assets/cursor_data2.json";
+import cursorDataJson from "/public/assets/cursor_data3.json";
 
 export const cursorData: CursorData = cursorDataJson as CursorData;

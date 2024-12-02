@@ -1,7 +1,5 @@
-
 //////////////////////////////////////////////////////////////
 //// working code v1 amazing //////////////////////////////////
-
 
 // import React from 'react';
 // import { useCurrentFrame, useVideoConfig } from 'remotion';
@@ -245,7 +243,7 @@
 //     const smoothedPanPositions: { panX: number; panY: number }[] = [];
 
 //     // const windowSize = 90; // Number of frames to look ahead and behind
-//     const windowSize = 30; 
+//     const windowSize = 30;
 //     const halfWindow = Math.floor(windowSize / 2);
 
 //     for (let f = 0; f < durationInFrames; f++) {
@@ -340,7 +338,6 @@
 //     </div>
 //   );
 // };
-
 
 ///////////////////// This is the one more copy of working zoom and pan animation//////////////////////
 ////////////////////////////////////////////////////
@@ -441,7 +438,7 @@
 //     const smoothedPanPositions: { panX: number; panY: number }[] = [];
 
 //     // const windowSize = 90; // Number of frames to look ahead and behind
-//     const windowSize = 30; 
+//     const windowSize = 30;
 //     const halfWindow = Math.floor(windowSize / 2);
 
 //     for (let f = 0; f < durationInFrames; f++) {
@@ -536,7 +533,6 @@
 //     </div>
 //   );
 // };
-
 
 ///////////////////// Test 4 //////////////////////
 ////////////////////////////////////////////////////
@@ -748,10 +744,8 @@
 //   );
 // };
 
-
 //////////////////////////// Working panning with adaptive smoothing //////////////////////
 ///////////////////////////////////////////////////////////
-
 
 // import React, { useMemo } from 'react';
 // import {
@@ -1024,7 +1018,6 @@
 //     </div>
 //   );
 // };
-
 
 // ///////////////////////////// Working code copy //////////////////////
 // ///////////////////////////////////////////////////////////
@@ -1301,42 +1294,568 @@
 //   );
 // };
 
-
-
-///////////////////////////// Test 6  //////////////////////
+///////////////////////////// Working code 6  //////////////////////
 ///////////////////////////////////////////////////////////
 
 // ZoomAndPanEffect.tsx
+// import React, { useMemo } from 'react';
+// import { useCurrentFrame, useVideoConfig } from 'remotion';
+// import { VideoPlayer } from './VideoPlayer';
+// import { cursorData } from './CursorData';
+// import { makeTransform, scale, translate } from '@remotion/animation-utils';
 
+// export const ZoomAndPanEffect: React.FC = () => {
+//   const frame = useCurrentFrame();
+//   const { fps, durationInFrames, width, height } = useVideoConfig();
+
+//   // Function to get cursor position using the passed cursorData
+//   const getCursorPositionAtTime = (timestamp: number) => {
+//     const position = cursorData.tracking_data.find(
+//       (data) =>
+//         Math.abs(data.recorded_display_data.timestamp - timestamp) < 50
+//     );
+//     return (
+//       position?.recorded_display_data ||
+//       cursorData.tracking_data[0].recorded_display_data
+//     );
+//   };
+
+//   // Original screen dimensions
+//   const ORIGINAL_WIDTH = width;
+//   const ORIGINAL_HEIGHT = height;
+//   const BOX_SIZE = 100;
+
+//   // Zoom timeline: array of { zoomDuration, zoomLevel, transitionDuration }
+//   const zoomTimeline = [
+//     { zoomDuration: 0, zoomLevel: 1.0, transitionDuration: 1 },
+//     { zoomDuration: 5, zoomLevel: 1.25, transitionDuration: 1 },
+//     { zoomDuration: 5, zoomLevel: 1.5, transitionDuration: 1 },
+//     { zoomDuration: 5, zoomLevel: 1.2, transitionDuration: 1 },
+//     { zoomDuration: 3, zoomLevel: 1.8, transitionDuration: 1 },
+//     { zoomDuration: 6, zoomLevel: 1.0, transitionDuration: 0 }, // No transition after last zoom
+//     // Add more zoom events as needed
+//   ];
+
+//   // Build zoom events with cumulative start and end times
+//   const zoomEvents = useMemo(() => {
+//     const events = [] as any[];
+//     let cumulativeTime = 3;
+
+//     for (const event of zoomTimeline) {
+//       const zoomEvent = {
+//         ...event,
+//         startTime: cumulativeTime,
+//         endTime: cumulativeTime + event.zoomDuration,
+//         transitionStartTime: cumulativeTime + event.zoomDuration,
+//         transitionEndTime: cumulativeTime + event.zoomDuration + event.transitionDuration,
+//       };
+//       events.push(zoomEvent);
+//       cumulativeTime += event.zoomDuration + event.transitionDuration;
+//     }
+
+//     return events;
+//   }, []);
+
+//   // const totalCycleDuration = cumulativeTime;
+//   const totalCycleDuration = useMemo(() =>
+//     zoomEvents.reduce((sum, event) => sum + event.zoomDuration + event.transitionDuration, 0),
+//     [zoomEvents]
+//   );
+
+//   // Helper functions for zoom calculations
+//   const interpolateZoom = (startZoom: number, endZoom: number, progress: number) => {
+//     const easedProgress = easeInOutCubic(progress);
+//     return startZoom + (endZoom - startZoom) * easedProgress;
+//   };
+
+//   const easeInOutCubic = (t: number) => {
+//     return t < 0.5
+//       ? 4 * t * t * t
+//       : 1 - Math.pow(-2 * t + 2, 3) / 2;
+//   };
+
+//   // Calculate zoom level based on the zoom timeline with transitions at the end
+//   const getZoomLevel = (frame: number) => {
+//     const timeInSeconds = (frame / fps) % totalCycleDuration;
+//     let zoomLevel = 1.0;
+
+//     for (let i = 0; i < zoomEvents.length; i++) {
+//       const zoomEvent = zoomEvents[i];
+//       const nextZoomEvent = zoomEvents[(i + 1) % zoomEvents.length];
+
+//       const {
+//         startTime,
+//         endTime,
+//         transitionStartTime,
+//         transitionEndTime,
+//         zoomLevel: currentZoomLevel,
+//         transitionDuration,
+//       } = zoomEvent;
+
+//       if (timeInSeconds >= startTime && timeInSeconds < endTime) {
+//         return currentZoomLevel;
+//       } else if (
+//         transitionDuration > 0 &&
+//         timeInSeconds >= transitionStartTime &&
+//         timeInSeconds < transitionEndTime
+//       ) {
+//         const transitionProgress = (timeInSeconds - transitionStartTime) / transitionDuration;
+//         return interpolateZoom(currentZoomLevel, nextZoomEvent.zoomLevel, transitionProgress);
+//       }
+//     }
+
+//     return 1.0;
+//   };
+
+//   const currentZoom = getZoomLevel(frame);
+
+//   // Rest of the code remains the same...
+
+//   // Precompute smoothed pan positions with adaptive smoothing
+//   const smoothedPanPositions = useMemo(() => {
+//     const panPositions: { panX: number; panY: number }[] = [];
+//     const cursorPositions: { x: number; y: number }[] = [];
+
+//     // First, create an array of pan positions for each frame and store cursor positions
+//     for (let f = 0; f < durationInFrames; f++) {
+//       const timestamp = (f / fps) * 1000;
+//       const cursorPos = getCursorPositionAtTime(timestamp);
+
+//       // Compute maxPanX and maxPanY based on max zoom level
+//       const maxZoomLevel = Math.max(...zoomTimeline.map((z) => z.zoomLevel));
+//       const maxPanX = (ORIGINAL_WIDTH * (maxZoomLevel - 1)) / 2;
+//       const maxPanY = (ORIGINAL_HEIGHT * (maxZoomLevel - 1)) / 2;
+
+//       let targetPanX = cursorPos.x - ORIGINAL_WIDTH / 2;
+//       let targetPanY = cursorPos.y - ORIGINAL_HEIGHT / 2;
+
+//       // Clamp pan values
+//       targetPanX = Math.max(-maxPanX, Math.min(maxPanX, targetPanX));
+//       targetPanY = Math.max(-maxPanY, Math.min(maxPanY, targetPanY));
+
+//       panPositions.push({ panX: targetPanX, panY: targetPanY });
+//       cursorPositions.push({ x: cursorPos.x, y: cursorPos.y });
+//     }
+
+//     // Apply adaptive exponential smoothing over pan positions
+//     const smoothedPanPositions: { panX: number; panY: number }[] = [];
+//     let previousPanX = panPositions[0].panX;
+//     let previousPanY = panPositions[0].panY;
+
+//     const windowSize = 90; // Number of frames to consider for movement magnitude
+
+//     for (let f = 0; f < durationInFrames; f++) {
+//       // Compute cursor movement over the last windowSize frames
+//       const startFrame = Math.max(0, f - windowSize + 1);
+
+//       const deltaX = cursorPositions[f].x - cursorPositions[startFrame].x;
+//       const deltaY = cursorPositions[f].y - cursorPositions[startFrame].y;
+
+//       const movementMagnitude = Math.max(Math.abs(deltaX), Math.abs(deltaY));
+
+//       // Determine smoothing factor based on movement magnitude
+//       let alpha = 0.0001; // Default very slow panning
+
+//       if (movementMagnitude >= 500) {
+//         alpha = 0.1;
+//       } else if (movementMagnitude >= 400) {
+//         alpha = 0.1;
+//       } else if (movementMagnitude >= 300) {
+//         alpha = 0.003;
+//       } else if (movementMagnitude >= 200) {
+//         alpha = 0.002;
+//       } else if (movementMagnitude >= 100) {
+//         alpha = 0.001;
+//       }
+
+//       // Apply exponential smoothing
+//       const panX = alpha * panPositions[f].panX + (1 - alpha) * previousPanX;
+//       const panY = alpha * panPositions[f].panY + (1 - alpha) * previousPanY;
+
+//       smoothedPanPositions.push({ panX, panY });
+
+//       previousPanX = panX;
+//       previousPanY = panY;
+//     }
+
+//     return smoothedPanPositions;
+//   }, [durationInFrames, fps, ORIGINAL_WIDTH, ORIGINAL_HEIGHT, cursorData]);
+
+//   // Get pan values for the current frame
+//   const panX = smoothedPanPositions[frame]?.panX || 0;
+//   const panY = smoothedPanPositions[frame]?.panY || 0;
+
+//   // Adjust pan values based on current zoom level
+//   const maxZoomLevel = Math.max(...zoomTimeline.map((z) => z.zoomLevel));
+//   const panScaleFactor = (currentZoom - 1) / (maxZoomLevel - 1);
+//   const adjustedPanX = panX * panScaleFactor;
+//   const adjustedPanY = panY * panScaleFactor;
+
+//   const containerStyle: React.CSSProperties = {
+//     position: 'relative',
+//     width: ORIGINAL_WIDTH,
+//     height: ORIGINAL_HEIGHT,
+//     overflow: 'hidden',
+//     backgroundColor: 'black', // Ensure background is black to match video
+//   };
+
+//   const transformedContainerStyle: React.CSSProperties = {
+//     position: 'absolute',
+//     width: ORIGINAL_WIDTH,
+//     height: ORIGINAL_HEIGHT,
+//     transformOrigin: 'center center',
+//     transform: makeTransform([
+//       translate(-adjustedPanX, -adjustedPanY),
+//       scale(currentZoom),
+//     ]),
+//   };
+
+//   // Yellow boundary (original screen)
+//   const originalBoundaryStyle: React.CSSProperties = {
+//     position: 'absolute',
+//     border: '2px solid yellow',
+//     left: 0,
+//     top: 0,
+//     width: ORIGINAL_WIDTH,
+//     height: ORIGINAL_HEIGHT,
+//     pointerEvents: 'none',
+//     zIndex: 999,
+//   };
+
+//   // Get current cursor position
+//   const timestamp = (frame / fps) * 1000;
+//   const cursorPos = getCursorPositionAtTime(timestamp);
+
+//   // Red box (cursor area)
+//   const cursorBoxStyle: React.CSSProperties = {
+//     position: 'absolute',
+//     width: BOX_SIZE,
+//     height: BOX_SIZE,
+//     border: '2px solid red',
+//     left: cursorPos.x - BOX_SIZE / 2,
+//     top: cursorPos.y - BOX_SIZE / 2,
+//     pointerEvents: 'none',
+//     zIndex: 1000,
+//   };
+
+//   return (
+//     <div style={containerStyle}>
+//       <div style={transformedContainerStyle}>
+//         <VideoPlayer />
+//         <div style={cursorBoxStyle} />
+//       </div>
+//       <div style={originalBoundaryStyle} />
+//     </div>
+//   );
+// };
+
+///////////////////////////// Working code 7 with lookahead //////////////////////
+///////////////////////////////////////////////////////////
+
+// // ZoomAndPanEffect.tsx
+// import React, { useMemo } from 'react';
+// import { useCurrentFrame, useVideoConfig } from 'remotion';
+// import { VideoPlayer } from './VideoPlayer';
+// import { cursorData } from './CursorData';
+// import { makeTransform, scale, translate } from '@remotion/animation-utils';
+
+// export const ZoomAndPanEffect: React.FC = () => {
+//   const frame = useCurrentFrame();
+//   const { fps, durationInFrames, width, height } = useVideoConfig();
+
+//   // Function to get cursor position using the passed cursorData
+//   const getCursorPositionAtTime = (timestamp: number) => {
+//     const position = cursorData.tracking_data.find(
+//       (data) =>
+//         Math.abs(data.recorded_display_data.timestamp - timestamp) < 50
+//     );
+//     return (
+//       position?.recorded_display_data ||
+//       cursorData.tracking_data[cursorData.tracking_data.length - 1].recorded_display_data
+//     );
+//   };
+
+//   // Original screen dimensions
+//   const ORIGINAL_WIDTH = width;
+//   const ORIGINAL_HEIGHT = height;
+//   const BOX_SIZE = 100;
+
+//   // Introduce the LOOKAHEAD_SECONDS parameter
+//   const LOOKAHEAD_SECONDS = 0.7; // Adjust this value as needed
+
+//   // Zoom timeline: array of { zoomDuration, zoomLevel, transitionDuration }
+//   const zoomTimeline = [
+//     { zoomDuration: 0, zoomLevel: 1.0, transitionDuration: 1 },
+//     { zoomDuration: 5, zoomLevel: 1.25, transitionDuration: 1 },
+//     { zoomDuration: 5, zoomLevel: 1.5, transitionDuration: 1 },
+//     { zoomDuration: 5, zoomLevel: 1.2, transitionDuration: 1 },
+//     { zoomDuration: 3, zoomLevel: 1.8, transitionDuration: 1 },
+//     { zoomDuration: 6, zoomLevel: 1.0, transitionDuration: 0 }, // No transition after last zoom
+//     // Add more zoom events as needed
+//   ];
+
+//   // Build zoom events with cumulative start and end times
+//   const zoomEvents = useMemo(() => {
+//     const events = [] as any[];
+//     let cumulativeTime = 3;
+
+//     for (const event of zoomTimeline) {
+//       const zoomEvent = {
+//         ...event,
+//         startTime: cumulativeTime,
+//         endTime: cumulativeTime + event.zoomDuration,
+//         transitionStartTime: cumulativeTime + event.zoomDuration,
+//         transitionEndTime:
+//           cumulativeTime + event.zoomDuration + event.transitionDuration,
+//       };
+//       events.push(zoomEvent);
+//       cumulativeTime += event.zoomDuration + event.transitionDuration;
+//     }
+
+//     return events;
+//   }, []);
+
+//   const totalCycleDuration = useMemo(
+//     () =>
+//       zoomEvents.reduce(
+//         (sum, event) => sum + event.zoomDuration + event.transitionDuration,
+//         0
+//       ),
+//     [zoomEvents]
+//   );
+
+//   // Helper functions for zoom calculations
+//   const interpolateZoom = (startZoom: number, endZoom: number, progress: number) => {
+//     const easedProgress = easeInOutCubic(progress);
+//     return startZoom + (endZoom - startZoom) * easedProgress;
+//   };
+
+//   const easeInOutCubic = (t: number) => {
+//     return t < 0.5
+//       ? 4 * t * t * t
+//       : 1 - Math.pow(-2 * t + 2, 3) / 2;
+//   };
+
+//   // Calculate zoom level based on the zoom timeline with transitions at the end
+//   const getZoomLevel = (frame: number) => {
+//     const timeInSeconds = (frame / fps) % totalCycleDuration;
+//     let zoomLevel = 1.0;
+
+//     for (let i = 0; i < zoomEvents.length; i++) {
+//       const zoomEvent = zoomEvents[i];
+//       const nextZoomEvent = zoomEvents[(i + 1) % zoomEvents.length];
+
+//       const {
+//         startTime,
+//         endTime,
+//         transitionStartTime,
+//         transitionEndTime,
+//         zoomLevel: currentZoomLevel,
+//         transitionDuration,
+//       } = zoomEvent;
+
+//       if (timeInSeconds >= startTime && timeInSeconds < endTime) {
+//         return currentZoomLevel;
+//       } else if (
+//         transitionDuration > 0 &&
+//         timeInSeconds >= transitionStartTime &&
+//         timeInSeconds < transitionEndTime
+//       ) {
+//         const transitionProgress =
+//           (timeInSeconds - transitionStartTime) / transitionDuration;
+//         return interpolateZoom(
+//           currentZoomLevel,
+//           nextZoomEvent.zoomLevel,
+//           transitionProgress
+//         );
+//       }
+//     }
+
+//     return 1.0;
+//   };
+
+//   const currentZoom = getZoomLevel(frame);
+
+//   // Precompute smoothed pan positions with adaptive smoothing
+//   const smoothedPanPositions = useMemo(() => {
+//     const panPositions: { panX: number; panY: number }[] = [];
+//     const cursorPositions: { x: number; y: number }[] = [];
+
+//     // First, create an array of pan positions for each frame and store cursor positions
+//     for (let f = 0; f < durationInFrames; f++) {
+//       // Adjust the timestamp to look ahead into the future
+//       const timestamp = ((f / fps) + LOOKAHEAD_SECONDS) * 1000;
+
+//       // Ensure timestamp does not exceed the total duration
+//       const maxTimestamp =
+//         (durationInFrames / fps) * 1000;
+//       const adjustedTimestamp = Math.min(timestamp, maxTimestamp);
+
+//       const cursorPos = getCursorPositionAtTime(adjustedTimestamp);
+
+//       // Compute maxPanX and maxPanY based on max zoom level
+//       const maxZoomLevel = Math.max(...zoomTimeline.map((z) => z.zoomLevel));
+//       const maxPanX = (ORIGINAL_WIDTH * (maxZoomLevel - 1)) / 2;
+//       const maxPanY = (ORIGINAL_HEIGHT * (maxZoomLevel - 1)) / 2;
+
+//       let targetPanX = cursorPos.x - ORIGINAL_WIDTH / 2;
+//       let targetPanY = cursorPos.y - ORIGINAL_HEIGHT / 2;
+
+//       // Clamp pan values
+//       targetPanX = Math.max(-maxPanX, Math.min(maxPanX, targetPanX));
+//       targetPanY = Math.max(-maxPanY, Math.min(maxPanY, targetPanY));
+
+//       panPositions.push({ panX: targetPanX, panY: targetPanY });
+//       cursorPositions.push({ x: cursorPos.x, y: cursorPos.y });
+//     }
+
+//     // Apply adaptive exponential smoothing over pan positions
+//     const smoothedPanPositions: { panX: number; panY: number }[] = [];
+//     let previousPanX = panPositions[0].panX;
+//     let previousPanY = panPositions[0].panY;
+
+//     const windowSize = 90; // Number of frames to consider for movement magnitude
+
+//     for (let f = 0; f < durationInFrames; f++) {
+//       // Compute cursor movement over the last windowSize frames
+//       const startFrame = Math.max(0, f - windowSize + 1);
+
+//       const deltaX = cursorPositions[f].x - cursorPositions[startFrame].x;
+//       const deltaY = cursorPositions[f].y - cursorPositions[startFrame].y;
+
+//       const movementMagnitude = Math.max(Math.abs(deltaX), Math.abs(deltaY));
+
+//       // Determine smoothing factor based on movement magnitude
+//       let alpha = 0.0001; // Default very slow panning
+
+//       if (movementMagnitude >= 500) {
+//         alpha = 0.1;
+//       } else if (movementMagnitude >= 400) {
+//         alpha = 0.1;
+//       } else if (movementMagnitude >= 300) {
+//         alpha = 0.003;
+//       } else if (movementMagnitude >= 200) {
+//         alpha = 0.002;
+//       } else if (movementMagnitude >= 100) {
+//         alpha = 0.001;
+//       }
+
+//       // Apply exponential smoothing
+//       const panX = alpha * panPositions[f].panX + (1 - alpha) * previousPanX;
+//       const panY = alpha * panPositions[f].panY + (1 - alpha) * previousPanY;
+
+//       smoothedPanPositions.push({ panX, panY });
+
+//       previousPanX = panX;
+//       previousPanY = panY;
+//     }
+
+//     return smoothedPanPositions;
+//   }, [durationInFrames, fps, ORIGINAL_WIDTH, ORIGINAL_HEIGHT, cursorData, LOOKAHEAD_SECONDS]);
+
+//   // Get pan values for the current frame
+//   const panX = smoothedPanPositions[frame]?.panX || 0;
+//   const panY = smoothedPanPositions[frame]?.panY || 0;
+
+//   // Adjust pan values based on current zoom level
+//   const maxZoomLevel = Math.max(...zoomTimeline.map((z) => z.zoomLevel));
+//   const panScaleFactor = (currentZoom - 1) / (maxZoomLevel - 1);
+//   const adjustedPanX = panX * panScaleFactor;
+//   const adjustedPanY = panY * panScaleFactor;
+
+//   const containerStyle: React.CSSProperties = {
+//     position: 'relative',
+//     width: ORIGINAL_WIDTH,
+//     height: ORIGINAL_HEIGHT,
+//     overflow: 'hidden',
+//     backgroundColor: 'black', // Ensure background is black to match video
+//   };
+
+//   const transformedContainerStyle: React.CSSProperties = {
+//     position: 'absolute',
+//     width: ORIGINAL_WIDTH,
+//     height: ORIGINAL_HEIGHT,
+//     transformOrigin: 'center center',
+//     transform: makeTransform([
+//       translate(-adjustedPanX, -adjustedPanY),
+//       scale(currentZoom),
+//     ]),
+//   };
+
+//   // Yellow boundary (original screen)
+//   const originalBoundaryStyle: React.CSSProperties = {
+//     position: 'absolute',
+//     border: '2px solid yellow',
+//     left: 0,
+//     top: 0,
+//     width: ORIGINAL_WIDTH,
+//     height: ORIGINAL_HEIGHT,
+//     pointerEvents: 'none',
+//     zIndex: 999,
+//   };
+
+//   // Get current cursor position
+//   const timestamp = ((frame / fps) + LOOKAHEAD_SECONDS) * 1000;
+//   const maxTimestamp = (durationInFrames / fps) * 1000;
+//   const adjustedTimestamp = Math.min(timestamp, maxTimestamp);
+//   const cursorPos = getCursorPositionAtTime(adjustedTimestamp);
+
+//   // Red box (cursor area)
+//   const cursorBoxStyle: React.CSSProperties = {
+//     position: 'absolute',
+//     width: BOX_SIZE,
+//     height: BOX_SIZE,
+//     border: '2px solid red',
+//     left: cursorPos.x - BOX_SIZE / 2,
+//     top: cursorPos.y - BOX_SIZE / 2,
+//     pointerEvents: 'none',
+//     zIndex: 1000,
+//   };
+
+//   return (
+//     <div style={containerStyle}>
+//       <div style={transformedContainerStyle}>
+//         <VideoPlayer />
+//         <div style={cursorBoxStyle} />
+//       </div>
+//       <div style={originalBoundaryStyle} />
+//     </div>
+//   );
+// };
+
+///////////////////////////// Testing code 8 with lookahead //////////////////////
+///////////////////////////////////////////////////////////
+
+// ZoomAndPanEffect.tsx
 import React, { useMemo } from 'react';
-import {
-  useCurrentFrame,
-  useVideoConfig,
-} from 'remotion';
+import { useCurrentFrame, useVideoConfig } from 'remotion';
 import { VideoPlayer } from './VideoPlayer';
 import { cursorData } from './CursorData';
 import { makeTransform, scale, translate } from '@remotion/animation-utils';
-
-const getCursorPositionAtTime = (timestamp: number) => {
-  // Find the cursor data closest to the timestamp
-  const position = cursorData.tracking_data.find(
-    (data) =>
-      Math.abs(data.recorded_display_data.timestamp - timestamp) < 50
-  );
-  return (
-    position?.recorded_display_data ||
-    cursorData.tracking_data[0].recorded_display_data
-  );
-};
 
 export const ZoomAndPanEffect: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames, width, height } = useVideoConfig();
 
+  // Function to get cursor position using the passed cursorData
+  const getCursorPositionAtTime = (timestamp: number) => {
+    const position = cursorData.tracking_data.find(
+      (data) => Math.abs(data.recorded_display_data.timestamp - timestamp) < 50,
+    );
+    return (
+      position?.recorded_display_data ||
+      cursorData.tracking_data[cursorData.tracking_data.length - 1]
+        .recorded_display_data
+    );
+  };
+
   // Original screen dimensions
   const ORIGINAL_WIDTH = width;
   const ORIGINAL_HEIGHT = height;
   const BOX_SIZE = 100;
+
+  // Introduce the LOOKAHEAD_SECONDS parameter
+  const LOOKAHEAD_SECONDS = 0.7; // Adjust this value as needed
 
   // Zoom timeline: array of { zoomDuration, zoomLevel, transitionDuration }
   const zoomTimeline = [
@@ -1350,31 +1869,57 @@ export const ZoomAndPanEffect: React.FC = () => {
   ];
 
   // Build zoom events with cumulative start and end times
-  const zoomEvents = [] as any[];
-  let cumulativeTime = 3; // Start at 3 seconds as per your requirement
+  const zoomEvents = useMemo(() => {
+    const events = [] as any[];
+    let cumulativeTime = 3;
 
-  for (const event of zoomTimeline) {
-    const zoomEvent = {
-      ...event,
-      startTime: cumulativeTime,
-      endTime: cumulativeTime + event.zoomDuration,
-      transitionStartTime: cumulativeTime + event.zoomDuration,
-      transitionEndTime: cumulativeTime + event.zoomDuration + event.transitionDuration,
-    };
-    zoomEvents.push(zoomEvent);
-    cumulativeTime += event.zoomDuration + event.transitionDuration;
-  }
+    for (const event of zoomTimeline) {
+      const zoomEvent = {
+        ...event,
+        startTime: cumulativeTime,
+        endTime: cumulativeTime + event.zoomDuration,
+        transitionStartTime: cumulativeTime + event.zoomDuration,
+        transitionEndTime:
+          cumulativeTime + event.zoomDuration + event.transitionDuration,
+      };
+      events.push(zoomEvent);
+      cumulativeTime += event.zoomDuration + event.transitionDuration;
+    }
 
-  const totalCycleDuration = cumulativeTime;
+    return events;
+  }, []);
+
+  const totalCycleDuration = useMemo(
+    () =>
+      zoomEvents.reduce(
+        (sum, event) => sum + event.zoomDuration + event.transitionDuration,
+        0,
+      ),
+    [zoomEvents],
+  );
+
+  // Helper functions for zoom calculations
+  const interpolateZoom = (
+    startZoom: number,
+    endZoom: number,
+    progress: number,
+  ) => {
+    const easedProgress = easeInOutCubic(progress);
+    return startZoom + (endZoom - startZoom) * easedProgress;
+  };
+
+  const easeInOutCubic = (t: number) => {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  };
 
   // Calculate zoom level based on the zoom timeline with transitions at the end
   const getZoomLevel = (frame: number) => {
     const timeInSeconds = (frame / fps) % totalCycleDuration;
-    let zoomLevel = 1.0; // Default zoom level
+    let zoomLevel = 1.0;
 
     for (let i = 0; i < zoomEvents.length; i++) {
       const zoomEvent = zoomEvents[i];
-      const nextZoomEvent = zoomEvents[(i + 1) % zoomEvents.length]; // Wrap around
+      const nextZoomEvent = zoomEvents[(i + 1) % zoomEvents.length];
 
       const {
         startTime,
@@ -1386,46 +1931,26 @@ export const ZoomAndPanEffect: React.FC = () => {
       } = zoomEvent;
 
       if (timeInSeconds >= startTime && timeInSeconds < endTime) {
-        // During zoom duration, maintain current zoom level
-        zoomLevel = currentZoomLevel;
-        return zoomLevel;
-      } else if (transitionDuration > 0 && timeInSeconds >= transitionStartTime && timeInSeconds < transitionEndTime) {
-        // During transition, interpolate to next zoom level
-        const transitionProgress = (timeInSeconds - transitionStartTime) / transitionDuration;
-        const toZoomLevel = nextZoomEvent.zoomLevel;
-        zoomLevel = interpolateZoom(
+        return currentZoomLevel;
+      } else if (
+        transitionDuration > 0 &&
+        timeInSeconds >= transitionStartTime &&
+        timeInSeconds < transitionEndTime
+      ) {
+        const transitionProgress =
+          (timeInSeconds - transitionStartTime) / transitionDuration;
+        return interpolateZoom(
           currentZoomLevel,
-          toZoomLevel,
-          transitionProgress
+          nextZoomEvent.zoomLevel,
+          transitionProgress,
         );
-        return zoomLevel;
       }
     }
 
-    // If time is outside any zoom event, set zoomLevel to default
     return 1.0;
   };
 
-  // Helper function to interpolate between zoom levels
-  const interpolateZoom = (
-    startZoom: number,
-    endZoom: number,
-    progress: number
-  ) => {
-    const easedProgress = easeInOutCubic(progress);
-    return startZoom + (endZoom - startZoom) * easedProgress;
-  };
-
-  // Easing function for smooth transitions
-  const easeInOutCubic = (t: number) => {
-    return t < 0.5
-      ? 4 * t * t * t
-      : 1 - Math.pow(-2 * t + 2, 3) / 2;
-  };
-
   const currentZoom = getZoomLevel(frame);
-
-  // Rest of the code remains the same...
 
   // Precompute smoothed pan positions with adaptive smoothing
   const smoothedPanPositions = useMemo(() => {
@@ -1434,13 +1959,17 @@ export const ZoomAndPanEffect: React.FC = () => {
 
     // First, create an array of pan positions for each frame and store cursor positions
     for (let f = 0; f < durationInFrames; f++) {
-      const timestamp = (f / fps) * 1000;
-      const cursorPos = getCursorPositionAtTime(timestamp);
+      // Adjust the timestamp to look ahead into the future
+      const timestamp = (f / fps + LOOKAHEAD_SECONDS) * 1000;
+
+      // Ensure timestamp does not exceed the total duration
+      const maxTimestamp = (durationInFrames / fps) * 1000;
+      const adjustedTimestamp = Math.min(timestamp, maxTimestamp);
+
+      const cursorPos = getCursorPositionAtTime(adjustedTimestamp);
 
       // Compute maxPanX and maxPanY based on max zoom level
-      const maxZoomLevel = Math.max(
-        ...zoomTimeline.map((z) => z.zoomLevel)
-      );
+      const maxZoomLevel = Math.max(...zoomTimeline.map((z) => z.zoomLevel));
       const maxPanX = (ORIGINAL_WIDTH * (maxZoomLevel - 1)) / 2;
       const maxPanY = (ORIGINAL_HEIGHT * (maxZoomLevel - 1)) / 2;
 
@@ -1448,14 +1977,8 @@ export const ZoomAndPanEffect: React.FC = () => {
       let targetPanY = cursorPos.y - ORIGINAL_HEIGHT / 2;
 
       // Clamp pan values
-      targetPanX = Math.max(
-        -maxPanX,
-        Math.min(maxPanX, targetPanX)
-      );
-      targetPanY = Math.max(
-        -maxPanY,
-        Math.min(maxPanY, targetPanY)
-      );
+      targetPanX = Math.max(-maxPanX, Math.min(maxPanX, targetPanX));
+      targetPanY = Math.max(-maxPanY, Math.min(maxPanY, targetPanY));
 
       panPositions.push({ panX: targetPanX, panY: targetPanY });
       cursorPositions.push({ x: cursorPos.x, y: cursorPos.y });
@@ -1472,36 +1995,29 @@ export const ZoomAndPanEffect: React.FC = () => {
       // Compute cursor movement over the last windowSize frames
       const startFrame = Math.max(0, f - windowSize + 1);
 
-      const deltaX =
-        cursorPositions[f].x - cursorPositions[startFrame].x;
-      const deltaY =
-        cursorPositions[f].y - cursorPositions[startFrame].y;
+      const deltaX = cursorPositions[f].x - cursorPositions[startFrame].x;
+      const deltaY = cursorPositions[f].y - cursorPositions[startFrame].y;
 
-      const movementMagnitude = Math.max(
-        Math.abs(deltaX),
-        Math.abs(deltaY)
-      );
+      const movementMagnitude = Math.max(Math.abs(deltaX), Math.abs(deltaY));
 
       // Determine smoothing factor based on movement magnitude
       let alpha = 0.0001; // Default very slow panning
 
       if (movementMagnitude >= 500) {
         alpha = 0.1;
-        } else if (movementMagnitude >= 400) {
+      } else if (movementMagnitude >= 400) {
         alpha = 0.1;
-        } else if (movementMagnitude >= 300) {
+      } else if (movementMagnitude >= 300) {
         alpha = 0.003;
-        } else if (movementMagnitude >= 200) {
+      } else if (movementMagnitude >= 200) {
         alpha = 0.002;
-        } else if (movementMagnitude >= 100) {
+      } else if (movementMagnitude >= 100) {
         alpha = 0.001;
       }
 
       // Apply exponential smoothing
-      const panX =
-        alpha * panPositions[f].panX + (1 - alpha) * previousPanX;
-      const panY =
-        alpha * panPositions[f].panY + (1 - alpha) * previousPanY;
+      const panX = alpha * panPositions[f].panX + (1 - alpha) * previousPanX;
+      const panY = alpha * panPositions[f].panY + (1 - alpha) * previousPanY;
 
       smoothedPanPositions.push({ panX, panY });
 
@@ -1510,7 +2026,14 @@ export const ZoomAndPanEffect: React.FC = () => {
     }
 
     return smoothedPanPositions;
-  }, [durationInFrames, fps, zoomTimeline]);
+  }, [
+    durationInFrames,
+    fps,
+    ORIGINAL_WIDTH,
+    ORIGINAL_HEIGHT,
+    cursorData,
+    LOOKAHEAD_SECONDS,
+  ]);
 
   // Get pan values for the current frame
   const panX = smoothedPanPositions[frame]?.panX || 0;
@@ -1554,8 +2077,10 @@ export const ZoomAndPanEffect: React.FC = () => {
   };
 
   // Get current cursor position
-  const timestamp = (frame / fps) * 1000;
-  const cursorPos = getCursorPositionAtTime(timestamp);
+  const timestamp = (frame / fps + LOOKAHEAD_SECONDS) * 1000;
+  const maxTimestamp = (durationInFrames / fps) * 1000;
+  const adjustedTimestamp = Math.min(timestamp, maxTimestamp);
+  const cursorPos = getCursorPositionAtTime(adjustedTimestamp);
 
   // Red box (cursor area)
   const cursorBoxStyle: React.CSSProperties = {
@@ -1579,4 +2104,3 @@ export const ZoomAndPanEffect: React.FC = () => {
     </div>
   );
 };
-
