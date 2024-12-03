@@ -1724,7 +1724,7 @@ export const ZoomAndPanEffect: React.FC = () => {
   const currentZoom = getZoomLevel(frame);
 
   // Define camera widget size range
-  const CAMERA_MIN_SIZE = 200; // Smallest size when zoomed in
+  const CAMERA_MIN_SIZE = 180; // Smallest size when zoomed in
   const CAMERA_MAX_SIZE = 350; // Largest size when zoomed out
 
   // Get min and max zoom levels from zoomTimeline
@@ -1903,6 +1903,7 @@ export const ZoomAndPanEffect: React.FC = () => {
         <VideoPlayer />
         {/* Cursor Box */}
 
+        {/* box around cursor */}
         <div
           style={{
             position: 'absolute',
@@ -1921,10 +1922,10 @@ export const ZoomAndPanEffect: React.FC = () => {
       <CameraView
         videoSrc="assets/camera_3.webm" // Replace with your actual camera video path
         position="bottom-right" // Change position as needed
-        // position={{ x: 1200, y: 700 }}
+        // position={{ x: 1130, y: 600 }}
         width={cameraSize} // Adjust size
         height={cameraSize}
-        borderRadius={75} // Adjust roundness (75 for a circle)
+        borderRadius={65} // Adjust roundness (75 for a circle)
         // borderRadius={cameraSize / 2} // Adjust roundness (75 for a circle)
         borderWidth={2} // Adjust border width
         borderGradient="linear-gradient(45deg, #f3ec78, #af4261)" // Customize gradient

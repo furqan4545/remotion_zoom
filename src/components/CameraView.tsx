@@ -99,7 +99,7 @@ export const CameraView: React.FC<CameraViewProps> = ({
               width: '100%',
               height: '130%',
               objectFit: 'cover',
-              transform: 'translateY(-50px)', // Adjust this value to move the video down
+              transform: 'translateY(-35px)', // Adjust this value to move the video down
             }}
           />
         </div>
