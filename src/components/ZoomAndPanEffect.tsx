@@ -1943,6 +1943,9 @@ export const ZoomAndPanEffect: React.FC = () => {
     return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   };
 
+  // Easing function for camera size (optional)
+  const easeOutQuad = (t: number) => t * (2 - t);
+
   // Calculate zoom level based on the zoom timeline with transitions
   const getZoomLevel = (frame: number) => {
     const timeInSecondsRaw = frame / fps;
@@ -2015,7 +2018,25 @@ export const ZoomAndPanEffect: React.FC = () => {
 
   const currentZoom = getZoomLevel(frame);
 
-  
+  // Define camera widget size range
+  const CAMERA_MIN_SIZE = 200; // Smallest size when zoomed in
+  const CAMERA_MAX_SIZE = 350; // Largest size when zoomed out
+
+  // Get min and max zoom levels from zoomTimeline
+  const zoomLevels = zoomTimeline.map((z) => z.zoomLevel);
+  const minminZoomLevel = Math.min(...zoomLevels);
+  const maxmaxZoomLevel = Math.max(...zoomLevels);
+  // Compute zoom range
+  const zoomRange = maxmaxZoomLevel - minminZoomLevel;
+  // Normalize current zoom level
+  const normalizedZoom = (currentZoom - minminZoomLevel) / zoomRange;
+  // Apply easing function
+  const easedZoom = easeOutQuad(normalizedZoom);
+  // Invert eased zoom to get camera size factor
+  const invertedEasedZoom = 1 - easedZoom;
+  // Compute camera size
+  const cameraSizeRange = CAMERA_MAX_SIZE - CAMERA_MIN_SIZE;
+  const cameraSize = CAMERA_MIN_SIZE + cameraSizeRange * invertedEasedZoom;
 
   // Precompute smoothed pan positions with adaptive smoothing
   const smoothedPanPositions = useMemo(() => {
@@ -2196,9 +2217,10 @@ export const ZoomAndPanEffect: React.FC = () => {
         videoSrc="assets/camera_3.webm" // Replace with your actual camera video path
         position="bottom-right" // Change position as needed
         // position={{ x: 1200, y: 700 }}
-        width={250} // Adjust size
-        height={250}
+        width={cameraSize} // Adjust size
+        height={cameraSize}
         borderRadius={75} // Adjust roundness (75 for a circle)
+        // borderRadius={cameraSize / 2} // Adjust roundness (75 for a circle)
         borderWidth={4} // Adjust border width
         borderGradient="linear-gradient(45deg, #f3ec78, #af4261)" // Customize gradient
         boxShadow="0 4px 10px rgba(0, 0, 0, 0.3)" // Customize shadow
