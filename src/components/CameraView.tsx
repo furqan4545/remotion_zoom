@@ -97,8 +97,9 @@ export const CameraView: React.FC<CameraViewProps> = ({
             src={staticFile(videoSrc)}
             style={{
               width: '100%',
-              height: '100%',
+              height: '130%',
               objectFit: 'cover',
+              transform: 'translateY(-50px)', // Adjust this value to move the video down
             }}
           />
         </div>
