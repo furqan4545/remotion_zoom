@@ -2349,6 +2349,7 @@ import { AbsoluteFill, Img, staticFile, Video } from "remotion";
 import { VideoPlayer } from './VideoPlayer';
 import { cursorData } from './CursorData';
 import { makeTransform, scale, translate } from '@remotion/animation-utils';
+import { CameraView } from './CameraView';
 
 export const ZoomAndPanEffect: React.FC = () => {
   const frame = useCurrentFrame();
@@ -2669,7 +2670,21 @@ export const ZoomAndPanEffect: React.FC = () => {
             zIndex: 1000,
           }}
         />
+        {/* Cursor box end */}
       </div>
+      {/* Camera view */}
+      <CameraView
+          videoSrc="assets/camera_3.webm" // Replace with your actual camera video path
+          position="bottom-right"            // Change position as needed
+          // position={{ x: 1200, y: 700 }} 
+          width={250}                        // Adjust size
+          height={250}
+          borderRadius={75}                  // Adjust roundness (75 for a circle)
+          borderWidth={4}                    // Adjust border width
+          borderGradient="linear-gradient(45deg, #f3ec78, #af4261)" // Customize gradient
+          boxShadow="0 4px 10px rgba(0, 0, 0, 0.3)"                 // Customize shadow
+        />
+        {/* Camera view end */}
     </div>
   );
 };
