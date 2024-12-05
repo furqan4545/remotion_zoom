@@ -1537,14 +1537,19 @@
 
 // ZoomAndPanEffect.tsx
 import React, { useMemo } from 'react';
-import { useCurrentFrame, useVideoConfig } from 'remotion';
+import { OffthreadVideo, useCurrentFrame, useVideoConfig } from 'remotion';
 import { AbsoluteFill, Img, staticFile, Video } from 'remotion';
 import { VideoPlayer } from './VideoPlayer';
 import { cursorData } from './CursorData';
 import { makeTransform, scale, translate } from '@remotion/animation-utils';
 import { CameraView } from './CameraView';
 
-export const ZoomAndPanEffect: React.FC = () => {
+interface ZoomAndPanEffectProps {
+  mainVideoSrc: string;
+}
+export const ZoomAndPanEffect: React.FC<ZoomAndPanEffectProps> = ({
+  mainVideoSrc,
+}) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames, width, height } = useVideoConfig();
 
@@ -1724,7 +1729,7 @@ export const ZoomAndPanEffect: React.FC = () => {
   const currentZoom = getZoomLevel(frame);
 
   // Define camera widget size range
-  const CAMERA_MIN_SIZE = 180; // Smallest size when zoomed in
+  const CAMERA_MIN_SIZE = 170; // Smallest size when zoomed in
   const CAMERA_MAX_SIZE = 320; // Largest size when zoomed out
 
   // Get min and max zoom levels from zoomTimeline
@@ -1864,6 +1869,7 @@ export const ZoomAndPanEffect: React.FC = () => {
   const cursorPositions = getCursorPositionAtTime(adjustedTimestamp);
 
   return (
+    <AbsoluteFill>
     <div
       style={{
         position: 'relative',
@@ -1900,11 +1906,12 @@ export const ZoomAndPanEffect: React.FC = () => {
           ]),
         }}
       >
-        <VideoPlayer />
+        {/* <VideoPlayer /> */}
+        <OffthreadVideo src={staticFile("assets/screen_3.webm")} />
         {/* Cursor Box */}
 
         {/* box around cursor */}
-        <div
+        {/* <div
           style={{
             position: 'absolute',
             width: BOX_SIZE,
@@ -1915,7 +1922,7 @@ export const ZoomAndPanEffect: React.FC = () => {
             pointerEvents: 'none',
             zIndex: 1000,
           }}
-        />
+        /> */}
         {/* Cursor box end */}
       </div>
       {/* Camera view */}
@@ -1925,14 +1932,15 @@ export const ZoomAndPanEffect: React.FC = () => {
         // position={{ x: 1130, y: 600 }}
         width={cameraSize} // Adjust size
         height={cameraSize}
-        borderRadius={75} // Adjust roundness (75 for a circle)
+        borderRadius={70} // Adjust roundness (75 for a circle)
         // borderRadius={cameraSize / 2} // Adjust roundness (75 for a circle)
-        borderWidth={2} // Adjust border width
+        borderWidth={1} // Adjust border width
         borderGradient="linear-gradient(45deg, #f3ec78, #af4261)" // Customize gradient
         // boxShadow="0 4px 10px rgba(0, 0, 0, 0.3)" // Customize shadow
-        boxShadow="0 0px 100px 50px rgba(0, 0, 0, 0.5)" // Customize shadow
+        boxShadow="0 0px 80px 50px rgba(0, 0, 0, 0.5)" // Customize shadow
       />
       {/* Camera view end */}
     </div>
+    </AbsoluteFill>
   );
 };
