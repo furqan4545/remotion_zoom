@@ -248,10 +248,20 @@ export const MainVideo: React.FC<MainVideoProps> = ({
       audioSequences.push(
         <Sequence
           key="audio-transition1"
-          from={currentFrame}
-          durationInFrames={transitionDurationInFrames - 0.25 * fps}
+          from={currentFrame - (0.2 * fps)}
+          durationInFrames={transitionDurationInFrames + (0.1 * fps)}
         >
-          <Audio src={transitionSoundEffectSrc1} volume={0.8} />
+          <Audio src={transitionSoundEffectSrc1}
+            volume={(frame) => {
+                if (frame <= 0) return 0;
+                if (frame <= 0.2 * fps) return (frame / (0.2 * fps)) * 0.2;
+                if (frame <= transitionDurationInFrames + 0.2 * fps) return 0.2;
+                if (frame <= transitionDurationInFrames + 0.4 * fps) {
+                    return 0.2 * (1 - ((frame - (transitionDurationInFrames + 0.2 * fps)) / (0.2 * fps)));
+                }
+                return 0;
+            }}
+           />
         </Sequence>,
       );
     }
@@ -291,10 +301,19 @@ export const MainVideo: React.FC<MainVideoProps> = ({
       audioSequences.push(
         <Sequence
           key="audio-transition2"
-          from={currentFrame}
-          durationInFrames={transitionDurationInFrames + 0.5 * fps}
+          from={currentFrame - (1.2 * fps)}
+          durationInFrames={transitionDurationInFrames + (0.3 * fps)}
         >
-          <Audio src={transitionSoundEffectSrc2} volume={0.5} />
+          <Audio src={transitionSoundEffectSrc2} 
+            volume={(frame) => {
+                if (frame <= 0.2 * fps) return (frame / (0.2 * fps)) * 0.1;
+                if (frame <= transitionDurationInFrames + 0.2 * fps) return 0.1;
+                if (frame <= transitionDurationInFrames + 0.4 * fps) {
+                    return 0.1 * (1 - ((frame - (transitionDurationInFrames + 0.2 * fps)) / (0.2 * fps)));
+                }
+                return 0;
+            }}
+          />
         </Sequence>,
       );
     }

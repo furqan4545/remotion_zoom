@@ -43,18 +43,22 @@ export const IntroComponent: React.FC<IntroComponentProps> = ({
         {/* Text animation */}
         <Animated
           animations={[
-            Scale({ by: 1, initial: 0, duration: textDuration / 4 }),
-            Fade({ to: 1, initial: 0, duration: textDuration / 4 }),
+            Scale({ by: 1, initial: 0, duration: textDuration / 1.5 }),
+            Fade({ to: 1, initial: 0, duration: textDuration / 1.5 }),
           ]}
         >
           <div style={{ 
-            fontSize: 60, 
+            position: 'relative',
+            top: '-10%',
+            fontSize: 70, 
             textAlign: 'center', 
             color: 'black',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             gap: '0.1em', // Consistent spacing between lines
+            fontFamily: 'monospace',
+            // fontWeight: 'bold',
           }}>
             {lines.map((line, index) => (
               <div 
@@ -75,7 +79,7 @@ export const IntroComponent: React.FC<IntroComponentProps> = ({
         {logoSrc && frame >= logoStart && (
           <div style={{ 
             position: 'absolute',
-            top: '70%',
+            top: '55%',
           }}>
             <Animated
               animations={[
@@ -83,17 +87,17 @@ export const IntroComponent: React.FC<IntroComponentProps> = ({
                   by: 1,
                   initial: 0,
                   start: logoStart,
-                  duration: logoDuration / 4,
+                  duration: logoDuration / 2,
                 }),
                 Fade({
                   to: 1,
                   initial: 0,
                   start: logoStart,
-                  duration: logoDuration / 4,
+                  duration: logoDuration / 2,
                 }),
               ]}
             >
-              <Img src={logoSrc} style={{ width: 350, height: 350 }} />
+              <Img src={logoSrc} style={{ width: 550, height: 550 }} />
             </Animated>
           </div>
         )}

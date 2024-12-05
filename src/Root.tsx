@@ -107,7 +107,7 @@ export const RemotionRoot: React.FC = () => {
   const mainVideoSrc = staticFile('assets/screen_3.webm');
 
   // Intro Settings
-  const introDurationInSeconds = 2; // Duration of the intro
+  const introDurationInSeconds = 2.5; // Duration of the intro
   const introDurationInFrames = Math.floor(introDurationInSeconds * fps);
   const introText = 'Welcome to the Future'; // Custom text
   const logoSrc = staticFile('logos/no_bg.png'); // Optional logo path
@@ -118,7 +118,7 @@ export const RemotionRoot: React.FC = () => {
   const transitionDurationInFrames = Math.floor(
     transitionDurationInSeconds * fps,
   );
-  const numberOfClips = 7;
+  const numberOfClips = 5;
 
   // Total Preview Duration
   const totalPreviewDurationInSeconds = numberOfClips * clipDurationInSeconds;
@@ -139,6 +139,8 @@ export const RemotionRoot: React.FC = () => {
   // Transition Sound Effect Source (Optional)
   const transitionSoundEffectSrc1 = staticFile('SFX/glitch1.mp3'); // Replace with your sound effect file or leave undefined
   const transitionSoundEffectSrc2 = staticFile('SFX/whoosh1.mp3');
+  // const transitionSoundEffectSrc1 = null; 
+  // const transitionSoundEffectSrc2 = null;
 
   return (
     <Composition
