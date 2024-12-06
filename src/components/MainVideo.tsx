@@ -185,6 +185,7 @@ interface MainVideoProps {
   transitionSoundEffectSrc2?: string; // Optional sound effect file
   includeIntro?: boolean;
   includePreview?: boolean;
+  includeBackground?: boolean; // New prop for background toggle
 }
 
 export const MainVideo: React.FC<MainVideoProps> = ({
@@ -200,6 +201,7 @@ export const MainVideo: React.FC<MainVideoProps> = ({
   transitionSoundEffectSrc2,
   includeIntro = true,
   includePreview = true,
+  includeBackground = true,
 }) => {
   const { fps, width, height } = useVideoConfig();
 
@@ -327,7 +329,7 @@ export const MainVideo: React.FC<MainVideoProps> = ({
       key="main-video"
       durationInFrames={mainVideoDurationInFrames}
     >
-      <ZoomAndPanEffect mainVideoSrc={mainVideoSrc} />
+      <ZoomAndPanEffect mainVideoSrc={mainVideoSrc} includeBackground={includeBackground} />
     </TransitionSeries.Sequence>,
   );
   // No need to update currentFrame here since this is the last component

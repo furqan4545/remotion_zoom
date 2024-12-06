@@ -163,6 +163,7 @@ export const RemotionRoot: React.FC = () => {
         transitionSoundEffectSrc2, // Pass the sound effect prop
         includeIntro,
         includePreview,
+        includeBackground: false,
       }}
     />
   );
