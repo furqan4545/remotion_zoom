@@ -186,6 +186,16 @@ interface MainVideoProps {
   includeIntro?: boolean;
   includePreview?: boolean;
   includeBackground?: boolean; // New prop for background toggle
+  trimSettings?: {
+    top: number;
+    bottom: number;
+    left: number;
+    right: number;
+  };
+  originalDimensions: {
+    width: number;
+    height: number;
+  };
 }
 
 export const MainVideo: React.FC<MainVideoProps> = ({
@@ -202,6 +212,8 @@ export const MainVideo: React.FC<MainVideoProps> = ({
   includeIntro = true,
   includePreview = true,
   includeBackground = true,
+  trimSettings = { top: 0, bottom: 0, left: 0, right: 0 },
+  originalDimensions = { width: 0, height: 0 },
 }) => {
   const { fps, width, height } = useVideoConfig();
 
@@ -329,7 +341,11 @@ export const MainVideo: React.FC<MainVideoProps> = ({
       key="main-video"
       durationInFrames={mainVideoDurationInFrames}
     >
-      <ZoomAndPanEffect mainVideoSrc={mainVideoSrc} includeBackground={includeBackground} />
+      <ZoomAndPanEffect mainVideoSrc={mainVideoSrc} 
+       includeBackground={includeBackground}
+       trimSettings = { trimSettings } 
+       originalDimensions={originalDimensions}
+       />
     </TransitionSeries.Sequence>,
   );
   // No need to update currentFrame here since this is the last component
