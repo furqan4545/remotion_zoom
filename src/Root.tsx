@@ -234,8 +234,8 @@ export const RemotionRoot: React.FC = () => {
         component={Main}
         durationInFrames={2500} // Adjust based on your video's length and frame rate
         fps={30} // Ensure this matches your video's frame rate
-        width={1920}
-        height={1080}
+        width={1512}
+        height={982}
       />
     </>
   );
