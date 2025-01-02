@@ -170,7 +170,7 @@ import { clockWipe } from '@remotion/transitions/clock-wipe';
 import { Sequence, useVideoConfig, Audio } from 'remotion';
 import { IntroComponent } from './IntroComponent';
 import { Preview } from './Preview';
-import { ZoomAndPanEffect } from './ZoomAndPanEffect';
+import { ZoomAndPanEffect } from './ZoomAndPanEffectv2';
 
 interface MainVideoProps {
   mainVideoDurationInFrames: number;
